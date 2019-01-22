@@ -2,13 +2,14 @@
 
 namespace FAC\EmailBundle\Repository;
 
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use FAC\EmailBundle\Entity\Email;
-use Schema\SchemaEntityRepository;
 use Doctrine\Common\Persistence\ManagerRegistry;
 use DateTime;
+use FAC\EmailBundle\Utils\Utils;
 use FAC\UserBundle\Entity\User;
 
-class EmailRepository extends SchemaEntityRepository {
+class EmailRepository extends ServiceEntityRepository {
 
     ///////////////////////////////////////////
     /// CONSTRUCTOR
@@ -18,6 +19,31 @@ class EmailRepository extends SchemaEntityRepository {
      */
     public function __construct(ManagerRegistry $registry) {
         parent::__construct($registry, Email::class);
+    }
+
+    /**
+     * Saves a given entity.
+     * @param  Email $entity
+     * @param  bool $update
+     * @return bool|array
+     * @throws \Doctrine\DBAL\ConnectionException
+     */
+    public function write(Email $entity, $update = false) {
+        $this->getEntityManager()->getConnection()->beginTransaction();
+
+        try {
+            if(!$update) {
+                $this->getEntityManager()->persist($entity);
+            }
+            $this->getEntityManager()->flush();
+            $this->getEntityManager()->getConnection()->commit();
+        } catch (\Exception $e) {
+            $exception = Utils::getFormattedExceptions($e);
+            $this->getEntityManager()->getConnection()->rollBack();
+            return $exception;
+        }
+
+        return true;
     }
 
     /**

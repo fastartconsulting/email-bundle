@@ -1,0 +1,20 @@
+{
+    "name": "fastartconsulting/email-bundle",
+    "description": "FastArtConsulting Symfony EmailBundle",
+    "type": "symfony-bundle",
+    "require": {
+        "fastartconsulting/user-bundle": "^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "FAC\\EmailBundle\\": ""
+        }
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "lmangiacotti",
+            "email": "luca.mangiacotti@fastartconsulting.com"
+        }
+    ]
+}

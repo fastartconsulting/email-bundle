@@ -3,7 +3,6 @@
 namespace FAC\EmailBundle\Entity;
 
 use DateTime;
-use Schema\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use JMS\Serializer\Annotation as JMS;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -11,25 +10,14 @@ use FAC\UserBundle\Entity\User;
 
 /**
  * @ORM\Table(name="`emails`")
- * @ORM\Entity(repositoryClass="FACFAC\EmailBundle\Repository\EmailRepository")
+ * @ORM\Entity(repositoryClass="FAC\EmailBundle\Repository\EmailRepository")
  */
-class Email extends Entity {
+class Email {
 
     const TYPE_REGISTRATION_CONFIRM         = 0;
     const TYPE_REGISTRATION_SUCCESS         = 1;
     const TYPE_PASSWORD_RESETTING           = 2;
     const TYPE_PASSWORD_RESETTING_SUCCESS   = 3;
-    const TYPE_LOGMONITOR_CHECK             = 4;
-    const TYPE_REMINDER_THERAPY             = 5;
-    const TYPE_INVITE_TO_REGISTRATION       = 6;
-    const TYPE_EXPIRATION_TRIAL_PREMIUM     = 7;
-    const TYPE_GENERIC_NEWSLETTER           = 8;
-    const TYPE_CHANGE_EMAIL                 = 9;
-    const TYPE_NOTICE_TO_ADMIN              = 10;
-    const TYPE_DETECTED_NEW_ACCESS          = 11;
-    const TYPE_SECURITY_CHANGE_PASSWORD     = 12;
-    const TYPE_CHANGE_PAYMENT_METHOD        = 13;
-    const TYPE_USER_DELETE                  = 14;
 
     const STATUS_PENDING    = 0;
     const STATUS_SENDED     = 1;
@@ -113,59 +101,6 @@ class Email extends Entity {
      * @ORM\Column(name="`status`", type="integer", nullable=true, options={"default":0})
      */
     private $status;
-
-    ################################################# SERIALIZER FUNCTIONS
-
-    /**
-     * Returns the array of fields to serialize in entity administration view.
-     * @return array
-     */
-    public function adminSerializer()
-    {
-        $view_vars = $this->viewSerializer();
-
-        $admin_vars = array();
-
-        return array_merge($view_vars, $admin_vars);
-    }
-
-    /**
-     * Returns the array of fields to serialize in entity view.
-     * @return array
-     */
-    public function viewSerializer()
-    {
-        $list_vars = $this->listSerializer();
-
-        $view_vars = array(
-        );
-
-        return array_merge($list_vars, $view_vars);
-    }
-
-    /**
-     * Returns the array of fields to serialize in a list of this entity.
-     * @return array
-     */
-    public function listSerializer()
-    {
-        $list_vars = array(
-        );
-        return $list_vars;
-    }
-
-    /**
-     * Returns the hash code unique identifier of the entity.
-     * @return string
-     */
-    public function hashCode()
-    {
-        // TODO: Implement hashCode() method.
-    }
-
-    ################################################# SERIALIZED FUNCTIONS
-
-
 
     ################################################# GETTERS AND SETTERS FUNCTIONS
 

@@ -4,21 +4,15 @@ namespace FAC\EmailBundle\Service;
 
 use FAC\EmailBundle\Entity\Email;
 use FAC\EmailBundle\Repository\EmailRepository;
-use LogBundle\Service\LogMonitorService;
-use LogBundle\Service\LogService;
-use Schema\Entity;
-use Schema\EntityService;
+use FAC\EmailBundle\Utils\Utils;
 use Swift_Mailer;
-use Symfony\Component\Form\Util\StringUtil;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use DateTime;
 use Exception;
 use Symfony\Component\Translation\TranslatorInterface;
 use FAC\UserBundle\Entity\User;
-use Utils\LogUtils;
-use Utils\StringUtils;
 
-class EmailService extends EntityService {
+class EmailService {
 
     private $administration_address;
 
@@ -28,13 +22,8 @@ class EmailService extends EntityService {
 
     private $outlookSwiftMailer;
 
-    /** @var LogService $logService */
-    private $logService;
-
     /** @var TranslatorInterface $translator */
     private $translator;
-
-    private $log_dir;
 
     private $mxDomainsOutlook = array(
         'live.it',
@@ -59,106 +48,43 @@ class EmailService extends EntityService {
      * @param string $sender_name
      * @param Swift_Mailer $swift_mailer
      * @param Swift_Mailer $second_swift_mailer
-     * @param LogMonitorService $logMonitorService
-     * @param LogService $logService
      * @param TranslatorInterface $translator
      */
-    public function __construct(EmailRepository $repository, AuthorizationCheckerInterface $authorizationChecker,
-                                string $log_dir,
+    public function __construct(EmailRepository $repository,
                                 string $mailer_user,
                                 string $sender_name,
                                 Swift_Mailer $swift_mailer,
                                 Swift_Mailer $second_swift_mailer,
-                                LogMonitorService $logMonitorService,
-                                LogService $logService,
                                 TranslatorInterface $translator) {
         $this->repository = $repository;
         $this->administration_address = $mailer_user;
         $this->sender_name = $sender_name;
         $this->swiftMailer = $swift_mailer;
         $this->outlookSwiftMailer = $second_swift_mailer;
-        $this->logService = $logService;
         $this->translator = $translator;
-        $this->log_dir = $log_dir;
-        parent::__construct($repository, $authorizationChecker, $logMonitorService);
     }
 
     /**
-     * Returns true if the logged user is the creator of this entity.
-     * @param Entity $entity
-     * @return bool
+     * Finalize and save the creation of the entity.
+     * Returns NULL if some error occurs otherwise it returns the persisted object.
+     * @param Email $entity
+     * @param User|null $user
+     * @param bool $update
+     * @return object|bool
+     * @throws \Exception
      */
-    public function isOwner(Entity $entity)
-    {
-        // TODO: Implement isOwner() method.
-    }
+    public function save(Email $entity, User $user = null, $update = false) {
+        if(!is_null($user)) {
+            $current_time = new \DateTime();
+            $current_time->setTimestamp(time());
+        }
 
-    /**
-     * Returns true if the logged user can administrate the entity
-     * @param Entity $entity
-     * @return bool
-     */
-    public function canAdmin(Entity $entity)
-    {
-        // TODO: Implement canAdmin() method.
-    }
+        $writing = $this->repository->write($entity, $update);
+        if(is_array($writing)) {
+            return false;
+        }
 
-    /**
-     * Returns true if the logged user can POST the entity
-     * @return bool
-     */
-    public function canPost()
-    {
-        // TODO: Implement canPost() method.
-    }
-
-    /**
-     * Returns true if the logged user can PUT the entity
-     * @param Entity $entity
-     * @return bool
-     */
-    public function canPut(Entity $entity)
-    {
-        // TODO: Implement canPut() method.
-    }
-
-    /**
-     * Returns true if the logged user can PATCH the entity
-     * @param Entity $entity
-     * @return bool
-     */
-    public function canPatch(Entity $entity)
-    {
-        // TODO: Implement canPatch() method.
-    }
-
-    /**
-     * Returns true if the logged user can DELETE the entity
-     * @param Entity $entity
-     * @return bool
-     */
-    public function canDelete(Entity $entity)
-    {
-        // TODO: Implement canDelete() method.
-    }
-
-    /**
-     * Returns true if the logged user can GET the entity
-     * @param Entity $entity
-     * @return bool
-     */
-    public function canGet(Entity $entity)
-    {
-        // TODO: Implement canGet() method.
-    }
-
-    /**
-     * Returns true if the logged user can GET a list of this entity
-     * @return bool
-     */
-    public function canGetList()
-    {
-        // TODO: Implement canGetList() method.
+        return $entity;
     }
 
     /**
@@ -170,7 +96,7 @@ class EmailService extends EntityService {
      * @param null $type
      * @param null $sendOn
      * @return null|object
-     * @throws \Doctrine\DBAL\ConnectionException
+     * @throws Exception
      */
     public function emailEnqueue($recipient = null, $subject, $body, $user = null, $when = null, $type = null, $sendOn = null) {
         if(is_null($when)) {
@@ -196,6 +122,7 @@ class EmailService extends EntityService {
     /**
      * get Queue Email not sent
      * @return array|null
+     * @throws Exception
      */
     public function getNotSent() {
         $date = new DateTime();
@@ -209,7 +136,13 @@ class EmailService extends EntityService {
         return null;
     }
 
-    public function processQueueEmail($log_file, string $subject, string $email, string $body) {
+    /**
+     * @param string $subject
+     * @param string $email
+     * @param string $body
+     * @return bool
+     */
+    public function processQueueEmail(string $subject, string $email, string $body) {
 
         $message = \Swift_Message::newInstance()
             ->setSubject($subject)
@@ -221,7 +154,7 @@ class EmailService extends EntityService {
 
         try {
 
-            if(!StringUtils::checkEmailString($email)) {
+            if(!Utils::checkEmailString($email)) {
                 return false;
             }
 
@@ -236,10 +169,6 @@ class EmailService extends EntityService {
             }
 
         } catch (Exception $e) {
-
-            $params = LogUtils::getLogParams(null,$this->translator, 0, json_encode($e));
-            $this->logService->createByCommand($params,$this->log_dir,"email",$log_file);
-
             return false;
         }
 
@@ -250,6 +179,7 @@ class EmailService extends EntityService {
      * Get just sent confirmation
      * @param User $user
      * @return bool
+     * @throws Exception
      */
     public function getJustSentConfirmation(User $user){
         $current_date = new DateTime();
@@ -268,6 +198,7 @@ class EmailService extends EntityService {
      * Get just sent reset
      * @param User $user
      * @return bool
+     * @throws Exception
      */
     public function getJustSentReset(User $user){
         $current_date = new DateTime();
