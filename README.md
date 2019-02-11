@@ -6,25 +6,17 @@ EmailBundle v1.0 STABLE
 
 Integrated with:
 - 
+FACUserBundle
 
-
-Documented with:
-- 
-
-
-Note
-----
-
-
-Documentation
--------------
 
 Setup
 ------------
+In services,yml 
 
-
-Our integrations
-------------
+    fac_user_bundle.email_service:
+        class: FAC\EmailBundle\Utils\EmailProcessProvider
+        #class: FAC\UserBundle\Utils\EmailProcess
+        public: true
 
 
 License

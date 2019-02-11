@@ -50,11 +50,6 @@ class Email {
     private $user;
 
     /**
-     * @ORM\Column(name="`type`", type="integer", nullable=false, options={"default":0})
-     */
-    private $type;
-
-    /**
      * @ORM\Column(name="`subject`", type="string", length=255, nullable=false)
      * @Assert\NotBlank(message = "require.subject")
      * @Assert\Regex(
@@ -305,29 +300,5 @@ class Email {
     public function getUser()
     {
         return $this->user;
-    }
-
-    /**
-     * Set type.
-     *
-     * @param bool|null $type
-     *
-     * @return Email
-     */
-    public function setType($type = null)
-    {
-        $this->type = $type;
-
-        return $this;
-    }
-
-    /**
-     * Get type.
-     *
-     * @return bool|null
-     */
-    public function getType()
-    {
-        return $this->type;
     }
 }
