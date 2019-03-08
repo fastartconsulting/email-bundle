@@ -19,6 +19,14 @@ In services,yml
         public: true
 
 
+- Run Server and Enjoy ;) 
+
+After 
+```
+php bin/console doctrine:schema:update --force
+php bin/console server:start
+```
+
 License
 -------
 
